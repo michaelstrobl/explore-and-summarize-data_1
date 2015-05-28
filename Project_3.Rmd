@@ -1,0 +1,2467 @@
+<center><h4>Project 3: Data Analysis with R</h4></center>
+<center><h4>Udacity Nanodegree - November Cohort</h4></center>
+
+<center><h1>Loan Data from Prosper Exploration by Michael Strobl</h1></center>
+
+Here you can download the dataset:
+<a href='https://docs.google.com/document/d/1qEcwltBMlRYZT-l699-71TzInWfk4W9q5rTCSvDVMpc/pub'>Loan Data from Prosper</a> and <a href='https://docs.google.com/spreadsheets/d/1gDyi_L4UvIrLTEC6Wri5nbaMmkGmLQBk-Yx3z0XDEtI/edit?usp=sharing'>Explanations to the Dataset</a>
+<br>
+Prosper is  a platform where individuals can invest in personal loans or request to borrow money.
+<br>
+<br>
+Here is a <a href='https://www.youtube.com/watch?v=qz2ZV-ELVfw'>Youtube Video</a> from Fox Business with the CEO of Prosper who explains the Propser System.
+<br>
+<br>
+Dataset:
+Read in Dataset and Libraries:
+```{r, warning=FALSE, message=FALSE}
+loan <- read.csv('prosperLoanData.csv')
+library(ggplot2)
+library(gridExtra)
+library(RColorBrewer)
+```
+<br>
+*Note: The dataset 'prosperLoanData.csv' must be in the same folder as this 'Project_3.Rmd' file.*
+
+<center><h2>1 Univariate Plots Section</h2></center>
+
+In the following, 19 variables of the Dataset are plotted and described.These are divided in numeric and categorial data. The numeric data is also described with a R *summary* commmand.
+
+<h3>Numeric Data</h3>
+<br>
+<h4>Variable 1: **Loan Original Amount** </h4>
+<br>
+```{r, echo=FALSE}
+
+ggplot(aes(x=LoanOriginalAmount), data = loan) + 
+  geom_histogram(binwidth = 1000, 
+                 fill = 'red', 
+                 color = 'black') +
+  scale_x_continuous(limits = c(1000,35000), 
+                     breaks = seq(0,35000,5000)) +
+  ggtitle('Loan Orginal Amount Frequency') +
+  xlab("Loan Original Amount") + ylab("Frequency")
+
+summary(loan$LoanOriginalAmount)
+```
+<br>
+The loans are between 1000 and 35000 Dollar. The most loans are distributed between 5000 and 15000 Dollar. You can also see peaks at exactly 5000, 10000, 15000, 20000, 25000 USD.
+<br>
+<br>
+<h4>Variable 2: **Borrower Annual Percentage Rate (APR)**</h4>
+<br>
+Note: To avoid Outliers in the plot, the dataset was reduced from 0.1% to 99.9% Quantile.
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=BorrowerAPR), data = loan) + 
+  geom_histogram(aes(y=..density..), 
+                 binwidth=0.01, 
+                 fill = 'red', 
+                 color = 'black') +
+  scale_x_continuous(lim = c(quantile(loan$BorrowerAPR, 
+                                      0.001, na.rm=TRUE), 
+                             quantile(loan$BorrowerAPR, 
+                                      0.999, na.rm=TRUE)),
+                    breaks = seq(0,0.5,0.05)) + 
+  ggtitle("Frequency of Borrower's Annual Percentage 
+          Rate (APR) ") +
+  xlab("APR") + ylab("Frequency") 
+
+summary(loan$BorrowerAPR)
+```
+<br>
+The most Borrower APRs are between 15% and 30%, except the biggest frequency with rates around 36%.
+<br>
+<br>
+<h4>Variable 3: **Borrower Rate**</h4>
+<br>
+Note: To avoid Outliers in the plot, the dataset was reduced from 0.1% to 99.9% Quantile.
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=BorrowerRate), data = loan) + 
+  geom_histogram(aes(y=..density..), 
+                 binwidth=0.01, 
+                 fill = 'green', 
+                 color = 'black') +
+  scale_x_continuous(breaks = seq(0,0.5,0.05), 
+                     lim = c(quantile(loan$BorrowerRate, 
+                                      0.001), 
+                             quantile (loan$BorrowerRate, 
+                                       0.999))) +
+  ggtitle("Frequency of Borrower Rate") +
+  xlab("Borrower Rate") + ylab("Frequency") 
+
+summary(loan$BorrowerRate)
+```
+<br>
+The highest frequency of rates are around 32%, followed by around 15% and 20%
+<br>
+<br>
+<h4>Variable 4: **Lender Yield**</h4>
+<br>
+Lender Yield is the Borrower Rate less Service Fees. 
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=LenderYield), data = loan) + 
+  geom_histogram(aes(y=..density..), 
+                 binwidth=0.01, 
+                 fill = 'green', 
+                 color = 'black') +
+  scale_x_continuous(breaks = seq(-0.1,0.5,0.05)) +
+  ggtitle("Frequency of Lender Yield") +
+  xlab("Lender Yield") + ylab("Frequency") 
+
+summary(loan$LenderYield)
+```
+<br>
+The Lender Yield can be negative and the highest frequency is around 30%, followed by 16%, 15% and 22%.
+<br>
+<br>
+<h4>Variable 5: **Investors**</h4>
+<br>
+Note: To avoid Outliers in the plot, the dataset was reduced from 0% to 99% Quantile.
+```{r, echo=FALSE}
+ggplot(aes(x=Investors), data = loan) + 
+  geom_histogram(binwidth = 20, 
+                 fill = 'darkviolet', 
+                 color = 'black') +
+  scale_x_continuous(lim = c(0, 
+                             quantile(loan$MonthlyLoanPayment, 
+                                      0.99, na.rm=TRUE))) +
+  ggtitle('Frequency of Investors') +
+  xlab("Investors") + ylab("Frequency")
+
+summary(loan$Investors)
+```
+<br>
+The distribution seems to be a long tail. The most loans have 1 investor and then the number of loans is decreasing with higher number of investors.
+<br>
+<br>
+<h4>Variable 6: **Monthly Loan Payment**</h4>
+<br>
+Note: To avoid Outliers in the plot, the dataset was reduced from 0% to 99% Quantile.
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=MonthlyLoanPayment), data = loan) + 
+  geom_histogram(binwidth=50, 
+                 fill = 'slateblue', 
+                 color = 'black') +
+  scale_x_continuous(lim = c(0, quantile
+                             (loan$MonthlyLoanPayment, 
+                                      0.99, na.rm=TRUE)),
+                     breaks = seq(0,800,100)) +
+  ggtitle('Frequency of different 
+          Monthly Loan Payments') +
+  xlab("Monthly Loan Payment") + ylab("Frequency") 
+
+summary(loan$MonthlyLoanPayment)
+```
+<br>
+Most monthly loan payments are around 200 USD.
+<br>
+<br>
+<h4>Variable 7: **Stated Monthly Income**</h4>
+<br>
+Note: To avoid Outliers in the plot, the dataset was from 0 to 20000 USD.
+<br>
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=StatedMonthlyIncome), data = loan) + 
+  geom_histogram(fill = 'green', 
+                 color = 'black', 
+                 binwidth = 500) +
+  scale_x_continuous(lim = c(0,20000)) +
+  ggtitle('Stated Monthly Income Frequency') +
+  xlab("Stated Monthly Income") + ylab("Frequency") 
+
+summary(loan$StatedMonthlyIncome)
+```
+<br>
+The most Borrowers have an income between 3000 and 6000 USD.
+<br>
+<br>
+<h4>Variable 8: **Debt To Income Ratio**</h4>
+<br>
+Note: To avoid Outliers in the plot, the dataset was from 0 to 1%.
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=DebtToIncomeRatio), data = loan) + 
+  geom_histogram(fill = 'green', 
+                 color = 'black', 
+                 binwidth = 0.001) +
+  scale_x_continuous(lim = c(0,1)) +
+  ggtitle('Debt to Income Frequency') +
+  xlab("Debt to Income") + ylab("Frequency") 
+
+summary(loan$DebtToIncome)
+```
+<br>
+The most Borrowers have a Debt to Income Ratio of 10% to 30%.
+<br>
+<br>
+<h4>Variable 9: **Average Credit Score**</h4>
+<br>
+The average Credit Score is the median of a upper and a lower credit score ranking by
+the consumer credit rating agency.
+<br>
+```{r}
+#AverageCreditScore
+loan$AverageCreditScore <- (loan$CreditScoreRangeLower+
+                              loan$CreditScoreRangeUpper)/2
+```
+<br>
+Note: To avoid Outliers in the plot, the dataset was reduced from 1% to 99% Quantile.
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=AverageCreditScore), data = loan) + 
+  geom_histogram(fill = 'green', 
+                 color = 'black', 
+                 binwidth = 10) +
+  scale_x_continuous(lim = c(quantile
+                             (loan$AverageCreditScore, 
+                              0.01, na.rm=TRUE),  
+                             quantile
+                             (loan$AverageCreditScore, 
+                              0.99, na.rm=TRUE)),
+                     breaks = seq(500, 800, 50)) +
+  ggtitle('Average Credit Score Frequency') +
+  xlab("Average Credit Score") + ylab("Frequency") 
+
+summary(loan$AverageCreditScore)
+```
+<br>
+The most loans have a rating between 650 and 750 points.
+<br>
+<br>
+<h4>Variable 10: **Loan Per Investor**</h4>
+<br>
+<br>
+```{r}
+#LoanPerInvestor
+Investors2 <- subset(loan, Investors > 1)
+Investors2$LoanPerInvestor <- Investors2$
+    LoanOriginalAmount/Investors2$Investors
+```
+<br>
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=LoanPerInvestor), data = Investors2) + 
+  geom_histogram(binwidth = 5, 
+                 color='black', 
+                 fill='mediumblue') +
+  scale_x_continuous(lim = c(0,250), 
+                     breaks = seq(0,250,50)) +
+  ggtitle('Frequency of Loan Per Investors') +
+  xlab("Loan Per Investor") + ylab("Frequency") 
+
+summary(Investors2$LoanPerInvestor)
+```
+<br>
+Most Investors give loans of 20 to 100 USD. 50 USD is the absolute peak.
+<br>
+<br>
+<h4>Variable 11: **Debt Service Coverage Ratio/Debt Coverage Ratio**</h4>
+<br><a href='http://www.investopedia.com/terms/d/dscr.asp'>Explanation of the Debt Coverage Ratio</a>
+<br>
+It's the relationship  between Stated Monthly Income and Monthly Loan Payment. 
+<br>
+```{r}
+#Debt Coverage Ratio
+loan$DebtCoverageRatio2 = loan$StatedMonthlyIncome/loan$MonthlyLoanPayment
+```
+<br>
+Note: To avoid Outliers in the plot, the dataset was reduced from 0 to 100.
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=DebtCoverageRatio2), data = loan) + 
+  geom_histogram(binwidth = 1)+
+  scale_x_continuous(lim = c(0,100)) +
+  ggtitle('Frequency of Debt Coverage Ratio') +
+  xlab("Debt Coverage Ratio") + ylab("Frequency") 
+
+
+summary(loan$DebtCoverageRatio2)
+```
+<br>
+The most Borrowers have a Debt Coverage Ratio around 20. That means their income is 20 times their monthly loan payment. The higher the value the more trustworthy is the borrower.
+<br>
+<br>
+<h3>Categorial Data</h3>
+<br>
+<h4>Variable 12: **Term**</h4>
+<br>
+```{r, echo=FALSE}
+#factor Term
+loan$Term <- factor(loan$Term)
+#plot with labels
+ggplot(aes(x = Term), data = loan) + 
+  geom_histogram(width = 0.1, 
+                 fill = 'blue', 
+                 color = 'black') +
+  geom_text(stat='bin',
+            aes(label=..count..),
+            vjust=-0.3, 
+            color = 'black', 
+            fontface="bold") +
+  ggtitle('Frequency of Loan Terms') +
+  xlab("Loan Terms") + ylab("Frequency")
+```
+<br>
+The loans have three possible terms: 12, 36, 60 months. 77% of the loans have a term of 36 months.
+<br>
+<br>
+<h4>Variable 13: **Loan Status**</h4>
+<br>
+```{r, echo=FALSE}
+#Reduce Factor Levels
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (1-15 days)"] <- "Past Due < 30 Days"
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (16-30 days)"] <- "Past Due < 30 Days"
+
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (31-60 days)"] <- "Past Due > 30 Days"
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (61-90 days)"] <- "Past Due > 30 Days"
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (91-120 days)"] <- "Past Due > 30 Days"
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (>120 days)"] <- "Past Due > 30 Days"
+
+
+#order factors
+loan <- within(loan, LoanStatus <- factor(LoanStatus, 
+                                          levels=names
+                                          (sort(table
+                                                (LoanStatus), 
+                                                decreasing=TRUE))))
+
+#plot
+ggplot(aes(x = LoanStatus), data = loan) + 
+  geom_histogram(width = 0.5, 
+                 fill = 'green', 
+                 color = 'black') +
+geom_text(stat='bin',
+          aes(label=..count..),
+          vjust=-0.1, 
+          color = 'black', 
+          fontface="bold") +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   hjust = 1)) +
+  ggtitle('Frequency of Loan Statuses') +
+  xlab("Loan Terms") + ylab("Loan Statuses")
+```
+<br>
+The most loans are current, followed by completed, chargedoff and defaulted.
+<br>
+<br>
+<h4>Variable 14: **Employment Status**</h4>
+<br>
+```{r, echo=FALSE}
+#Empty Values are assigned to "Not available"
+loan$EmploymentStatus[loan$EmploymentStatus == ""] <- "Not available"
+
+#Order Factors from high frequency to low frequency
+loan <- within(loan, EmploymentStatus <- factor(EmploymentStatus, 
+                                          levels=names(
+                                            sort(table(EmploymentStatus), 
+                                                 decreasing=TRUE))))
+
+ggplot(aes(x=EmploymentStatus), data = loan) +  
+  geom_histogram(width = 0.5, 
+                 fill = 'seagreen', 
+                 color = 'black') +
+  geom_text(stat='bin',
+            aes(label=..count..),
+            vjust=-0.3, 
+            color = 'black', 
+            fontface="bold") +
+  ggtitle('Employment Statuses Frequencies') +
+  xlab("Employment Statuses") + ylab("Frequency")
+```
+<br>
+The most loans are given to employed, full-time and self employed people.
+<br>
+<br>
+<h4>Variable 15: **Loan Categories**</h4>
+<br>
+Note: To avoid overplotting, the dataset was reduced to the top 10 Loan Categories.
+<br>
+```{r,echo=FALSE}
+#factor values
+loan$ListingCategory..numeric. <- factor(loan$ListingCategory..numeric.)
+
+#reduce dataset to the top 10 loan categories
+loan <- within(loan, ListingCategory..numeric. <- factor(
+  ListingCategory..numeric., exclude = NA,levels=names(sort(table
+  (ListingCategory..numeric.)[1:10], decreasing=TRUE))))
+
+#give names to numbers according to the Prosper Loan Data Variable Definitions
+levels(loan$ListingCategory..numeric.)[levels(loan$ListingCategory..numeric.)==
+                                         "1"] <- "Debt Consolidation"
+levels(loan$ListingCategory..numeric.)[levels(loan$ListingCategory..numeric.)
+                                       =="0"] <- "Not available"
+levels(loan$ListingCategory..numeric.)[levels(loan$ListingCategory..numeric.)==
+                                         "7"] <- "Other"
+levels(loan$ListingCategory..numeric.)[levels(loan$ListingCategory..numeric.)==
+                                         "2"] <- "Home Improvement"
+levels(loan$ListingCategory..numeric.)[levels(loan$ListingCategory..numeric.)==
+                                         "3"] <- "Business"
+levels(loan$ListingCategory..numeric.)[levels(loan$ListingCategory..numeric.)==
+                                         "6"] <- "Auto"
+levels(loan$ListingCategory..numeric.)[levels(loan$ListingCategory..numeric.)==
+                                         "4"] <- "Personal Loan"
+levels(loan$ListingCategory..numeric.)[levels(loan$ListingCategory..numeric.)==
+                                         "5"] <- "Student Use"
+levels(loan$ListingCategory..numeric.)[levels(loan$ListingCategory..numeric.)==
+                                         "8"] <- "Baby & Adoption"
+levels(loan$ListingCategory..numeric.)[levels(loan$ListingCategory..numeric.)==
+                                         "9"] <- "Boat"
+
+#plot
+ggplot(aes(x=ListingCategory..numeric.), 
+       data = subset(loan, !is.na(ListingCategory..numeric.))) + 
+  geom_histogram(width = 0.3, 
+                 fill = 'maroon', 
+                 color = 'black') + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_text(stat='bin',
+            aes(label=..count..),
+            vjust=0, 
+            color = 'black', 
+            fontface="bold") +
+  ggtitle('Top 10 Loan Categories') +
+  xlab("Loan Category") + ylab("Frequency") 
+```
+<br>
+The most loan categories which are defined (not NA oder Other) are for debt consolidation, home improvements, business and auto.
+<br>
+<br>
+<h4>Variable 16: **Home Owner**</h4>
+<br>
+```{r, echo=FALSE}
+#change names
+loan$IsBorrowerHomeowner[loan$IsBorrowerHomeowner == FALSE] <- "No"
+loan$IsBorrowerHomeowner[loan$IsBorrowerHomeowner == TRUE] <- "Yes"
+
+#order factors
+loan <- within(loan, 
+               IsBorrowerHomeowner <- factor(IsBorrowerHomeowner, 
+                                                levels=names
+                                             (sort(table
+                                                   (IsBorrowerHomeowner), 
+                                                   decreasing=TRUE))))
+
+#plot
+ggplot(aes(x= IsBorrowerHomeowner), data = loan) + 
+  geom_histogram(width = 0.1, 
+                 fill = 'tomato', 
+                 color = 'black') +
+  geom_text(stat='bin',
+            aes(label=..count..),
+            vjust=-0.3, 
+            color = 'black', 
+            fontface="bold") +
+  ggtitle('Frequency of Borrowers as Homeowner') +
+  xlab("Borrowers as Homeowner") + ylab("Frequency")  
+```
+<br>
+The Borrowers with own Homes have a small lead to ones without Homes.
+<br>
+<br>
+<h4>Variable 17: **Top Occupations**</h4>
+<br>
+Note: To avoid overplotting, the dataset was reduced to the top 10 Occupations.
+<br>
+```{r, echo=FALSE}
+#Top 10
+loan$Occupation[loan$Occupation == "Other"] <- NA
+loan$Occupation[loan$Occupation == ""] <- NA
+loan$Occupation <- factor(loan$Occupation)
+loan <- within(loan, Occupation <- factor(Occupation, exclude = NA,
+                                          levels=names(sort
+                                                       (table(Occupation)[1:10], 
+                                                        decreasing=TRUE))))
+#plot
+ggplot(aes(x=Occupation), data = subset(loan, !is.na(Occupation))) + 
+  geom_histogram(width = 0.3, 
+                 fill = 'dodgerblue', 
+                 color = 'black') +
+  geom_text(stat='bin',
+            aes(label=..count..),
+            vjust=-0.3, 
+            color = 'black', 
+            fontface="bold") +
+  theme(axis.text.x = element_text(angle = 45, 
+                                   hjust = 1)) +
+  ggtitle('Top 10 Occupations') +
+  xlab("Occupations") + ylab("Frequency") 
+```
+<br>
+The occupations with the highest frequency are administrative assistants, analysts and accountants/CPAs.
+<br>
+<br>
+<br>
+<h4>Variable 18: **Year**</h4>
+<br>
+```{r, echo=FALSE}
+library(lubridate)
+loan$LoanOriginationDate <- ymd_hms(loan$LoanOriginationDate)
+
+
+loan$Year <- year(loan$LoanOriginationDate)
+loan$Year <- factor(loan$Year)
+
+ggplot(aes(x=Year), data = loan) + 
+  geom_histogram(width = 0.3, 
+                 fill = 'chartreuse', 
+                 color = 'black') +
+  geom_text(stat='bin',
+            aes(label=..count..),
+            vjust=-0.3, 
+            color = 'black', 
+            fontface="bold") +
+  theme(axis.text.x = element_text(angle = 45, 
+                                   hjust = 1)) +
+  ggtitle('Frequency of Loans per Year') +
+  xlab("Year") + ylab("Frequency") 
+```
+<br>
+The Year Variable was created with the Lubridate Library.
+<br>
+In 2013, the most loans were given and in 2009 was a big fall of loans.
+<br>
+<br>
+<br>
+<br>
+<h3>What is the structure of your dataset?</h4>
+Size of Dataset: 86,5 MB
+Variables: 81
+Number of Loans in the Dataset: about 114000  <!--- nrow(loan) ---> <br> 
+Volume of all Loans: about 950 Million  <!--- sum(loan$LoanOriginalAmount) ---> <br>
+Number of Investors: about 9,2 Million  <!--- sum(loan$Investors) ---> <br>
+Average Invest: USD 103 <!--- sum(loan$Investors) ---> <br> 
+Average Loan: USD 8300 <!--- sum(loan$Investors) ---> <br>
+Minimum Loan: USD 1000 <!--- min(loan$LoanOriginalAmount) ---> <br>
+Maximum Loan: USD 35000 <!--- max(loan$LoanOriginalAmount) ---> <br>
+Terms: 12, 36 or 60 months <!--- table(loan$Term) ---> <br>
+<br>
+<h3>What are the main features of interest in your dataset?</h3>
+I want to see: <br>
+- How high are the loans people take with the prosper platform (main feature: Loan OriginalAmount)? <br>
+- How expensive are the loans (main feature: Borrower Rate)?
+<h3>What other features in the dataset do you think will help support your investigation into your feature of interest?</h3> <br>
+- Who are the people who take the loans? <br>
+- For what do people take the loan? <br>
+- How many investors has a loan? <br>
+- Is there a rating for the loans?
+<h3>Did you create any new variables from existing variables in the dataset?</h3>
+Average Credit Score <br>
+Loan Per Investor <br>
+Debt Coverage Ratio <br>
+<br>
+
+<h3>Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?</h3>
+BorrowerRate, BorrowerAPR and LenderYield are almost equal to a normal distribution and Investors seems to be a long tail distribution.
+Therefore, I factorised the variables "Term" and changed empty values to "NA".
+ListingCategory..numeric. is changed to ListingCategory where all numeric data is referred to their meanings, for example: "1" is referred to "Debt Consolidation". 
+<br>
+<center><h2>2 Bivariate Analysis</h2></center>
+<br>
+<h4>**BorrowerRate vs BorrowerAPR vs LenderYield**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+p1 <- ggplot(aes(x=BorrowerAPR), data = loan) + 
+  geom_density(color = 'red') +
+  ggtitle('Density of BorrowerAPR') +
+  xlab("BorrowerAPR") + ylab("Density")
+
+p2 <- ggplot(aes(x=BorrowerRate), data = loan) + 
+  geom_density(color = 'blue') +
+  ggtitle('Density of BorrowerRate') +
+  xlab("BorrowerRate") + ylab("Density")
+
+p3 <- ggplot(aes(x=LenderYield), data = loan) + 
+  geom_density(color = 'green') +
+  ggtitle('Density of LenderYield') +
+  xlab("LenderYield") + ylab("Density")
+
+p4 <- ggplot() + 
+  geom_density(aes(x=BorrowerAPR), 
+               data = loan, colour = 
+                 "red") +
+  geom_density(aes(x=BorrowerRate), 
+               data = loan, 
+               colour = "blue") +
+  geom_density(aes(x=LenderYield), 
+               data = loan, 
+               colour = "green") + 
+  ggtitle('All in one Plot') +
+  xlab("BorrowerAPR/BorrowerRate/LenderYield") + ylab("Density")
+
+grid.arrange(p1,p2,p3,p4)
+```
+<br>
+**Correlation:**
+<br>
+**a) BorrowerRate & BorrowerAPR**
+<br>
+```{r, echo=FALSE, warning=FALSE}
+with(loan, cor.test(BorrowerRate, BorrowerAPR), 
+     method='pearson')
+```
+<br>
+**b) BorrowerRate & LenderYield**
+<br>
+```{r, echo=FALSE, warning=FALSE}
+with(loan, cor.test(BorrowerRate, LenderYield), 
+     method='pearson')
+```
+<br>
+**c) BorrowerAPR & LenderYield**
+<br>
+```{r, echo=FALSE, warning=FALSE}
+with(loan, cor.test(BorrowerAPR, LenderYield), 
+     method='pearson')
+```
+<br>
+Conclusion:
+The distributions of all three features seem quite similar. Also, all three features have correlations of almost 1. That's why the following analysis is reduced to one feature, Borrower Rate.
+<br>
+<br>
+<h4>**1. Loan Original Amount**</h4>
+<h4>**1.1 Borrower Rate vs Loan Original Amount**</h4>
+<br>
+```{r, echo=FALSE}
+#loan <- read.csv('prosperLoanData.csv')
+library(ggplot2)
+#library(RColorBrewer)
+
+ggplot(aes(x=BorrowerRate, y=LoanOriginalAmount), data = loan) + 
+  geom_point(alpha = 1/10, 
+             color = 'royalblue') +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') +
+  ggtitle('Borrower Rate vs Loan Original Amount') +
+  xlab('Borrower Rate') + ylab('Loan OriginalAmount')
+
+with(loan, cor.test(BorrowerRate, 
+                    LoanOriginalAmount), 
+     method='pearson')
+
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+The most loans have an amount at 5000,10000,15000 and 20000 USD and the BorrowerRate have a huge spreading between 5% and 35%. 
+The value of -32% indicates a small negative correlation between Loan Original Amount and Borrower Rate.
+<br>
+<br>
+<h4>**1.2 Investors vs Loan Original Amount**</h4>
+```{r, echo=FALSE}
+ggplot(aes(x=Investors, y=LoanOriginalAmount), data = loan) + 
+  geom_point(alpha = 1/10, 
+             color = 'palegreen4') +
+    stat_summary(fun.y = mean, 
+                 geom = "point", 
+                 shape = 4, 
+                 color = 'red') +
+  ggtitle('Investors vs Loan Original Amount') +
+  xlab('Investors') + ylab('Loan OriginalAmount')
+
+with(loan, cor.test(Investors, LoanOriginalAmount), 
+     method='pearson')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+The loans around 25000 USD have the most investors but there are also many high loans with only 1 investors. 
+<br>
+The value of 38% indicates a small positive correlation between Investors and Loan Original Amount.
+<br>
+<br>
+In the following, only loans with more than 1 investor is analysed.
+<br>
+```{r, echo=FALSE}
+Investors2 <- subset(loan, Investors > 1)
+
+with(Investors2, cor.test(Investors, 
+                          LoanOriginalAmount), 
+     method='pearson')
+```
+<br>
+The value rises from 38% to 67% and indicates a high positive correlation between Loan Original Amount and Investors.  
+<br>
+<br>
+<h4>**1.3 Monthly Loan Payment vs Loan Original Amount**</h4>
+```{r, echo=FALSE}
+ggplot(aes(x=MonthlyLoanPayment, y=LoanOriginalAmount), 
+       data = loan) + 
+  geom_point(alpha = 1, 
+             color = 'palegreen4') +
+  ggtitle('Monthly Loan Payment vs Loan Original Amount') +
+  xlab('Monthly Loan Payment') + ylab('Loan OriginalAmount')
+
+with(loan, cor.test(LoanOriginalAmount, MonthlyLoanPayment), 
+     method='pearson')
+```
+<br>
+You can see three different lines which represent the three different terms.
+The higher the loan, the higher is the monthly Loan Payment.
+<br>
+This proofs also the Pearson Correlation Test. There is a almost perfect correlation of 93%.
+<br>
+<br>
+<h4>**1.4 Average Credit Score vs Loan Original Amount**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+#AverageCreditScore
+loan$AverageCreditScore <- (loan$CreditScoreRangeLower+
+                              loan$CreditScoreRangeUpper)/2
+
+ggplot(aes(x=AverageCreditScore, y=LoanOriginalAmount), 
+       data = loan) + 
+  scale_x_continuous(lim = 
+                       c(quantile(loan$AverageCreditScore, 
+                                  0.01, na.rm=TRUE),  
+                        quantile(loan$AverageCreditScore, 
+                                  0.99, na.rm=TRUE)),
+                     breaks = seq(500, 850, 50)) +
+  geom_jitter(color = 'mediumblue', alpha = 1/10) +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') +
+  ggtitle('Average Credit Score vs Loan Original Amount') +
+  xlab('AverageCreditScore') + ylab('Loan OriginalAmount')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+There is a huge spread between a credit score of 500 and 800. Loans over 10000 USD have mostly a credit score over 700. Loans under 10000 USD are mostly be realised with a credit score of 500 and higher.
+<br>
+```{r, echo=FALSE}
+with(loan, cor.test(LoanOriginalAmount, 
+                    AverageCreditScore), 
+     method='pearson')
+```
+<br>
+A value of -34% shows a weak negative correlation between Average Credit Score and Loan Original Amount.
+<br>
+<br>
+<br>
+<h4>**1.5 Stated Monthly Income vs Loan Original Amount**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=StatedMonthlyIncome, y=LoanOriginalAmount), data = loan) + 
+  scale_x_continuous(lim = c(0,20000)) +
+  geom_point(color = 'blue', 
+             alpha = 1/100) +
+  ggtitle('Stated Monthly Income vs Loan Original Amount') +
+  xlab('Stated Monthly Income') + ylab('Loan OriginalAmount')
+```
+<br>
+People have mostly higher loans when they have a higher income. But they are also exceptions (see bottom right)
+<br>
+```{r, echo=FALSE}
+with(loan, cor.test(LoanOriginalAmount, 
+                    StatedMonthlyIncome), 
+     method='pearson')
+```
+<br>
+A value of 20% shows a weak positive correlation between Stated Monthly Income and Loan Original Amount.
+<br>
+<br>
+<br>
+<h4>**1.6 Debt To Income Ratio vs Loan Original Amount**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=DebtToIncomeRatio, y=LoanOriginalAmount), data = loan) + 
+  scale_x_continuous(lim = c(0,1)) +
+  geom_point(color = 'dimgrey', alpha = 1/10) +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') +
+  ggtitle('Debt To Income Ratio vs Loan Original Amount') +
+  xlab('Debt To Income Ratio') + ylab('Loan OriginalAmount')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+It seems that the Debt To Income Ratio has no visible effect on the Loan Original Amount.
+<br>
+```{r, echo=FALSE}
+with(loan, cor.test(LoanOriginalAmount, 
+                    DebtToIncomeRatio), 
+     method='pearson')
+```
+<br>
+The value of 0.01 proofs this fact and shows almost no correlation between the two features.
+<br>
+<br>
+<br>
+<h4>**1.7 Loan Per Investor vs Loan Original Amount**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+#AverageCreditScore
+loan$LoanPerInvestor <- loan$LoanOriginalAmount/loan$Investors
+
+Investors2 <- subset(loan, Investors > 1)
+Investors2$LoanPerInvestor <- Investors2$
+  LoanOriginalAmount/Investors2$Investors
+
+ggplot(aes(x=LoanPerInvestor, y=LoanOriginalAmount), 
+       data = Investors2) + 
+  scale_x_continuous(lim = c(0,250), 
+                     breaks = seq(0,250,50)) +
+  geom_point(color = 'olivedrab', alpha = 1/30) +
+  ggtitle('Loan Per Investor vs Loan Original Amount') +
+  xlab('Loan Per Investor') + ylab('Loan OriginalAmount')
+```
+
+<br>
+The most loans between 0 and 25000 USD are created by single invests of 50 to 100 USD. 
+<br>
+```{r, echo=FALSE}
+with(Investors2, cor.test(LoanPerInvestor, 
+                          LoanOriginalAmount), 
+     method='pearson')
+```
+<br>
+A value of 12% shows a weak positive correlation between these two features.
+<br>
+<br>
+<br>
+<h4>**1.8 Debt Coverage Ratio vs Loan Original Amount**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+#DebtCoverageRatio
+loan$DebtCoverageRatio2 = loan$StatedMonthlyIncome/
+  loan$MonthlyLoanPayment
+
+ggplot(aes(x=DebtCoverageRatio2, y=LoanOriginalAmount), data = loan) + 
+  scale_x_continuous(lim = c(0,100)) +
+  geom_point(color = 'dodgerblue2', alpha = 1/10) +
+  ggtitle('Debt Coverage Ratio vs Loan Original Amount') +
+  xlab('Debt Coverage Ratio') + ylab('Loan OriginalAmount')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Top left shows high loans with low Debt Coverage Ratio while bottom right shows low loans with high Debt Coverage Ratio.
+<br>
+```{r, echo=FALSE}
+DebtCoverageRatioNA <- subset(
+  loan, DebtCoverageRatio2 != Inf & DebtCoverageRatio2 != 'NA')
+
+with(DebtCoverageRatioNA, cor.test(LoanOriginalAmount, 
+                    DebtCoverageRatio2), 
+     method='pearson')
+```
+<br>
+A value of -8% shows a weak negative correlation between these two features.
+
+<br>
+<br>
+<br>
+<h4>**1.9 Term vs Loan Original Amount**</h4>
+```{r, echo=FALSE}
+loan$Term <- factor(loan$Term)
+
+ggplot(aes(x=Term, y=LoanOriginalAmount), data = loan) + 
+  geom_boxplot(width=0.5) +
+  geom_boxplot(width = 0.5, 
+               color = 'violet') +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') 
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+The higher the term, the higher the Loan Original Amount.
+<br>
+<br>
+<h4>**1.10 Loan Status vs Loan Original Amount**</h4>
+<br>
+```{r, echo=FALSE}
+#add factors to one
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (1-15 days)"] <- "Past Due < 30 Days"
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (16-30 days)"] <- "Past Due < 30 Days"
+
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (31-60 days)"] <- "Past Due > 30 Days"
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (61-90 days)"] <- "Past Due > 30 Days"
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (91-120 days)"] <- "Past Due > 30 Days"
+levels(loan$LoanStatus)[levels(loan$LoanStatus)==
+                          "Past Due (>120 days)"] <- "Past Due > 30 Days"
+
+#order factors
+loan <- within(loan, LoanStatus <- factor(LoanStatus, 
+                                          levels=names
+                                          (sort(table(LoanStatus), 
+                                                decreasing=TRUE))))
+
+#plot
+ggplot(aes(x=LoanStatus, y=LoanOriginalAmount), data = loan) + 
+  geom_boxplot(color = 'springgreen') + 
+  theme(axis.text.x = element_text(angle = 90, 
+                                   hjust = 1)) +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') +
+  ggtitle('LoanStatus vs Loan Original Amount') +
+  xlab('LoanStatus') + ylab('LoanOriginalAmount')
+
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Current loans have the highest loan amounts while cancelled has the lowest.
+<br>
+<br>
+<h4>**1.11 Employment Status vs Loan Orignal Amount**</h4>
+<br>
+```{r, echo=FALSE}
+#Empty Values are assigned to "Not available"
+loan$EmploymentStatus[loan$EmploymentStatus == ""] <- "Not available"
+
+#Order Factors from high frequency to low frequency
+loan <- within(loan, EmploymentStatus <- factor
+               (EmploymentStatus, levels=names
+                (sort(table(EmploymentStatus), 
+                      decreasing=TRUE))))
+
+ggplot(aes(x=EmploymentStatus, y=LoanOriginalAmount), data = loan) + 
+  geom_boxplot(alpha = 1/50, 
+               color = 'springgreen') +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   hjust = 1)) +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') +
+  ggtitle('Employment Status vs Loan Original Amount') +
+  xlab('EmploymentStatus') + ylab('Loan OriginalAmount')
+
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Employed and Full-time have the highest loans while retired and not-employed are rarely over 10000 USD.
+<br>
+<br>
+<h4>**1.12 Loan Categories vs Loan Original Amount**</h4>
+<br>
+```{r,echo=FALSE}
+#factor values
+loan$ListingCategory..numeric. <- factor(
+  loan$ListingCategory..numeric.)
+
+#reduce dataset to the top 10 loan categories
+loan <- within(loan, ListingCategory..numeric. <- factor
+               (ListingCategory..numeric., exclude = NA,
+                levels=names(sort(table(ListingCategory..numeric.)[1:10],  
+                                  decreasing=TRUE))))
+
+#give names to numbers according to the Prosper Loan Data Variable Definitions
+levels(loan$ListingCategory..numeric.)[levels(
+  loan$ListingCategory..numeric.)=="1"] <- "Debt Consolidation"
+levels(loan$ListingCategory..numeric.)[levels(
+  loan$ListingCategory..numeric.)=="0"] <- "Not available"
+levels(loan$ListingCategory..numeric.)[levels(
+  loan$ListingCategory..numeric.)=="7"] <- "Other"
+levels(loan$ListingCategory..numeric.)[levels(
+  loan$ListingCategory..numeric.)=="2"] <- "Home Improvement"
+levels(loan$ListingCategory..numeric.)[levels(
+  loan$ListingCategory..numeric.)=="3"] <- "Business"
+levels(loan$ListingCategory..numeric.)[levels(
+  loan$ListingCategory..numeric.)=="6"] <- "Auto"
+levels(loan$ListingCategory..numeric.)[levels(
+  loan$ListingCategory..numeric.)=="4"] <- "Personal Loan"
+levels(loan$ListingCategory..numeric.)[levels(
+  loan$ListingCategory..numeric.)=="5"] <- "Student Use"
+levels(loan$ListingCategory..numeric.)[levels(
+  loan$ListingCategory..numeric.)=="8"] <- "Baby & Adoption"
+levels(loan$ListingCategory..numeric.)[levels(
+  loan$ListingCategory..numeric.)=="9"] <- "Boat"
+
+
+#plot
+ggplot(aes(x=ListingCategory..numeric., y=LoanOriginalAmount), 
+       data = subset(loan, !is.na(ListingCategory..numeric.))) + 
+  geom_boxplot(alpha = 1/50, 
+               color = 'springgreen') + 
+  theme(axis.text.x = element_text(angle = 90, 
+                                   hjust = 1)) +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') +
+  ggtitle('Loan Categories vs Loan Original Amount') +
+  xlab("Loan Category") + ylab("Loan Original Amount") 
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+The highest amounts have debt consolidation, business and baby & adotpion.
+<br>
+<br>
+<h4>**1.13 Homeowner vs Loan Original Amount**</h4>
+<br>
+```{r, echo=FALSE}
+#change names
+loan$IsBorrowerHomeowner[
+  loan$IsBorrowerHomeowner == FALSE] <- "No"
+loan$IsBorrowerHomeowner[
+  loan$IsBorrowerHomeowner == TRUE] <- "Yes"
+
+#order factors
+loan <- within(loan, IsBorrowerHomeowner <- factor
+               (IsBorrowerHomeowner, levels=names
+                (sort(table(IsBorrowerHomeowner), 
+                      decreasing=TRUE))))
+
+#plot
+ggplot(aes(x=IsBorrowerHomeowner, y=LoanOriginalAmount), data = loan) + 
+  geom_boxplot(width = 0.5, 
+               alpha = 1/50, 
+               color = 'springgreen') +
+  ggtitle('Homeowner vs Loan Original Amount') +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') +
+  xlab('Homeowner') + ylab('Loan OriginalAmount')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Homeowner have higher amounts than non-homeowner.
+<br>
+<br>
+<h4>**1.14 Top Occupations vs Loan Original Amount**</h4>
+<br>
+```{r, echo=FALSE}
+#Top 10
+loan$Occupation[loan$Occupation == "Other"] <- NA
+loan$Occupation[loan$Occupation == ""] <- NA
+loan$Occupation <- factor(loan$Occupation)
+loan <- within(loan, Occupation <- factor(
+  Occupation, exclude = NA,
+  levels=names(sort(table(Occupation)[1:10], 
+                    decreasing=TRUE))))
+
+ggplot(aes(x=Occupation, y=LoanOriginalAmount), 
+       data = subset(loan, !is.na(Occupation))) + 
+  geom_boxplot(width = 0.5, 
+               alpha = 1/50, 
+               color = 'springgreen') +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   hjust = 1)) +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') +
+  ggtitle('Top Occupations vs Loan Original Amount') +
+  xlab('Top 10 Occupations') + ylab('Loan OriginalAmount')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+The highest loans have Attorneys and the lowest have Bus Drivers.<br>
+<br>
+
+
+<h4>**1.15 Year vs Loan Original Amount**</h4>
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=Year, y=LoanOriginalAmount), data = loan) + 
+  geom_boxplot(width = 0.5, 
+               alpha = 1/50, 
+               color = 'springgreen') +
+  ggtitle('Year vs Loan Original Amount') +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') +
+  xlab('Year') + ylab('Loan OriginalAmount')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+The year 2013 and 2014 have the highest loan amounts while 2008 has the lowest ones.<br>
+<br>
+<br>
+<h4>**2. BorrowerRate**</h4>
+<br>
+<h4>**2.1 Investors vs Borrower Rate**</h4>
+```{r, echo=FALSE}
+ggplot(aes(x=Investors, y=BorrowerRate), data = loan) + 
+  geom_point(color = 'palegreen4', alpha = 1/20) +
+  ggtitle('Investors vs Borrower Rate') +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') +
+  xlab('Investors') + ylab('Borrower Rate')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+The most loans have rates between 5% and 35%, while the loans with the most investors have rates of 10 to 20%.
+<br>
+<br>
+<h4>**2.2 Monthly Loan Payment vs Borrower Rate**</h4>
+```{r, echo=FALSE}
+ggplot(aes(x=MonthlyLoanPayment, y=BorrowerRate), 
+       data = loan) + 
+  geom_point(color = 'orangered', alpha = 1/20) +
+  ggtitle('BorrowerRate vs. Monthly Loan Payment') +
+
+  xlab('Monthly Loan Payment') + ylab('BorrowerRate')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Most payments are between 0 and 600 USD and have rates between 5% and 35%. 
+<br>
+```{r, echo=FALSE}
+with(loan, cor.test(BorrowerRate, 
+                    MonthlyLoanPayment), 
+     method='pearson')
+```
+<br>
+A value of -24% shows a weak negative correlation between Borrower Rate and Monthly Loan Payment.
+<br>
+<br>
+<h4>**2.3 Average Credit Score vs Borrower Rate**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+#AverageCreditScore
+loan$AverageCreditScore <- (loan$CreditScoreRangeLower+loan$
+                              CreditScoreRangeUpper)/2
+
+ggplot(aes(x=AverageCreditScore, y=BorrowerRate), data = loan) + 
+  scale_x_continuous(lim = c(quantile
+                             (loan$AverageCreditScore, 
+                              0.01, 
+                              na.rm=TRUE),  
+                             quantile
+                             (loan$AverageCreditScore,
+                              0.99, 
+                              na.rm=TRUE)),
+                     breaks = seq(500, 850, 50)) +
+  geom_jitter(color = 'plum2', 
+             alpha = 1/10) +
+  ggtitle('Average Credit Score vs Borrower Rate') +
+  stat_summary(fun.y = mean, 
+               geom = "point", 
+               shape = 4, 
+               color = 'red') +
+  xlab('Average Credit Score') + ylab('Borrower Rate')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Scores from 500 to 650 seem to have similar rates around 25%. From 650 to 900 the rates fall from 25% to 10%.
+<br>
+```{r, echo=FALSE, warning=FALSE}
+with(loan, cor.test(BorrowerRate, 
+                    AverageCreditScore), 
+     method='pearson')
+```
+<br>
+A value of -46% shows a middle negative correlation between Borrower Rate and Average Credit Score.
+<br>
+<br>
+<h4>**2.4 Stated Monthly Income vs Borrower Rate**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=StatedMonthlyIncome, y=BorrowerRate), data = loan) + 
+  scale_x_continuous(lim = c(0,20000)) +
+  geom_point(color = 'blue', 
+             alpha = 1/50) +
+  ggtitle('Stated Monthly Income vs Borrower Rate') +
+  xlab('Stated Monthly Income') + ylab('Borrower Rate')
+```
+<br>
+The Monthly Income doesn't seem to have an huge effect to the Borrower Rate.
+<br>
+```{r, echo=FALSE}
+with(loan, cor.test(BorrowerRate, 
+                    StatedMonthlyIncome), 
+     method='pearson')
+```
+<br>
+A value of -8% shows a weak negative correlation between Stated Monthly Income and Borrower Rate.
+<br>
+<br>
+<br>
+<h4>**2.5 Debt To Income Ratio vs Borrower Rate**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=DebtToIncomeRatio, y=BorrowerRate), data = loan) + 
+  scale_x_continuous(lim = c(0,1)) +
+  geom_point(color = 'dimgrey', alpha = 1/10) +
+  ggtitle('Debt To Income Ratio vs BorrowerRate') +
+  xlab('Debt To Income Ratio') + ylab('BorrowerRate')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+The Debt to Income Ratio doesn't seem to have a huge effect on the Borrower Rate.
+<br>
+```{r, echo=FALSE}
+with(loan, cor.test(BorrowerRate, DebtToIncomeRatio), 
+     method='pearson')
+```
+<br>
+The value of 0.06 shows a weak positive correlation betweeen these two features.
+<br>
+<br>
+<br>
+<h4>**2.6 Loan Per Investor vs Borrower Rate**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+#AverageCreditScore
+loan$LoanPerInvestor <- loan$LoanOriginalAmount/loan$Investors
+
+Investors2 <- subset(loan, Investors > 1)
+Investors2$LoanPerInvestor <- Investors2$
+  LoanOriginalAmount/Investors2$Investors
+
+ggplot(aes(x=LoanPerInvestor, y=BorrowerRate), 
+       data = Investors2) + 
+  scale_x_continuous(lim = c(0,250), 
+                     breaks = seq(0,250,50)) +
+  geom_point(color = 'royalblue', alpha = 1/30) +
+  ggtitle('Loan Per Investor vs Borrower Rate') +
+  xlab('Loan Per Investor') + ylab('Borrower Rate')
+```
+<br>
+It seems that Loan per Investor has no visible effect on the Borrower Rate.
+<br>
+```{r, echo=FALSE}
+with(Investors2, cor.test(LoanPerInvestor, 
+                          BorrowerRate), method='pearson')
+```
+<br>
+The value of 0.07 shows a weak positive correlation betweeen these two features.
+<br>
+<br>
+<br>
+<h4>**2.7 Debt Coverage Ratio vs Borrower Rate**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+#DebtCoverageRatio
+loan$DebtCoverageRatio2 = loan$StatedMonthlyIncome/
+  loan$MonthlyLoanPayment
+
+ggplot(aes(x=DebtCoverageRatio2, y=BorrowerRate), data = loan) + 
+  scale_x_continuous(lim = c(0,100)) +
+  geom_point(color = 'dodgerblue2', alpha = 1/10) +
+  ggtitle('Debt Coverage Ratio vs Borrower Rate') +
+  xlab('Debt Coverage Ratio') + ylab('Borrower Rate')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+All Debt Coverage Ratio seem to be distributed equally between 5% and 35%.
+<br>
+```{r, echo=FALSE}
+DebtCoverageRatioNA <- subset(
+  loan, DebtCoverageRatio2 != Inf & DebtCoverageRatio2 != 'NA')
+
+with(DebtCoverageRatioNA, cor.test(BorrowerRate, 
+                    DebtCoverageRatio2), 
+     method='pearson')
+```
+<br>
+The value of 0,12% shows almost no correlation between Borrower Rate and Debt Coverage Ratio.
+<br>
+<br>
+<br>
+<h4>**2.8 Term vs Borrower Rate**</h4>
+```{r, echo=FALSE}
+loan$Term <- factor(loan$Term)
+
+ggplot(aes(x=Term, y=BorrowerRate), data = loan) + geom_boxplot(width=0.5) +
+  geom_boxplot(width = 0.5, color = 'violet') +
+  stat_summary(fun.y = mean, geom = "point", shape = 4, color = 'red') +
+  ggtitle('Term vs Borrower Rate') +
+  xlab('Term') + ylab('Borrower Rate')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Terms of 36 or 60 months have higher rates than ones of 12 months.
+<br>
+<br>
+<h4>**2.9 Loan Status vs Borrower Rate**</h4>
+<br>
+```{r, echo=FALSE}
+#add factors to one
+levels(loan$LoanStatus)[levels(
+  loan$LoanStatus)=="Past Due (1-15 days)"] <- "Past Due < 30 Days"
+levels(loan$LoanStatus)[levels(
+  loan$LoanStatus)=="Past Due (16-30 days)"] <- "Past Due < 30 Days"
+
+levels(loan$LoanStatus)[levels(
+  loan$LoanStatus)=="Past Due (31-60 days)"] <- "Past Due > 30 Days"
+levels(loan$LoanStatus)[levels(
+  loan$LoanStatus)=="Past Due (61-90 days)"] <- "Past Due > 30 Days"
+levels(loan$LoanStatus)[levels(
+  loan$LoanStatus)=="Past Due (91-120 days)"] <- "Past Due > 30 Days"
+levels(loan$LoanStatus)[levels(
+  loan$LoanStatus)=="Past Due (>120 days)"] <- "Past Due > 30 Days"
+
+#order factors
+loan <- within(loan, LoanStatus <- factor(LoanStatus, 
+                                          levels=names(sort(table(LoanStatus), 
+                                                            decreasing=TRUE))))
+
+#plot
+ggplot(aes(x=LoanStatus, y=BorrowerRate), data = loan) + 
+  geom_boxplot(color = 'springgreen') + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  stat_summary(fun.y = mean, geom = "point", shape = 4, color = 'red') +
+  ggtitle('LoanStatus vs Borrower Rate') +
+  xlab('LoanStatus') + ylab('Borrower Rate')
+
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Current and cancelled loans have the lowes borrower rates while rates with past due status and or defaulted and chargedoff rates have the highest.
+<br>
+<br>
+<h4>**2.10 Employment Status vs Borrower Rate**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+#Empty Values are assigned to "Not available"
+loan$EmploymentStatus[loan$EmploymentStatus == ""] <- "Not available"
+
+#Order Factors from high frequency to low frequency
+loan <- within(loan, EmploymentStatus <- factor(EmploymentStatus, 
+                                          levels=names(sort(table
+                                                            (EmploymentStatus), 
+                                                            decreasing=TRUE))))
+
+ggplot(aes(x=EmploymentStatus, y=BorrowerRate), data = loan) + 
+  geom_boxplot(color = 'springgreen') +
+  stat_summary(fun.y = mean, geom = "point", shape = 4, color = 'red') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +  
+  ggtitle('Employment Status vs Borrower Rate') +
+  xlab('Employment Status') + ylab('Borrower Rate')
+
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Not-employed and Other have the highest rates while the other categories seem to have rates around 20%.
+<br>
+<br>
+<h4>**2.11 Loan Categories vs Borrower Rates**</h4>
+<br>
+```{r,echo=FALSE}
+#factor values
+loan$ListingCategory..numeric. <- factor(loan$ListingCategory..numeric.)
+
+#reduce dataset to the top 10 loan categories
+loan <- within(loan, ListingCategory..numeric. <- factor(
+  ListingCategory..numeric., exclude = NA,
+  levels=names(sort(table(ListingCategory..numeric.)[1:10], 
+                    decreasing=TRUE))))
+
+#give names to numbers according to the Prosper Loan Data Variable Definitions
+levels(loan$ListingCategory..numeric.)[
+  levels(loan$ListingCategory..numeric.)=="1"] <- "Debt Consolidation"
+levels(loan$ListingCategory..numeric.)[
+  levels(loan$ListingCategory..numeric.)=="0"] <- "Not available"
+levels(loan$ListingCategory..numeric.)[
+  levels(loan$ListingCategory..numeric.)=="7"] <- "Other"
+levels(loan$ListingCategory..numeric.)[
+  levels(loan$ListingCategory..numeric.)=="2"] <- "Home Improvement"
+levels(loan$ListingCategory..numeric.)[
+  levels(loan$ListingCategory..numeric.)=="3"] <- "Business"
+levels(loan$ListingCategory..numeric.)[
+  levels(loan$ListingCategory..numeric.)=="6"] <- "Auto"
+levels(loan$ListingCategory..numeric.)[
+  levels(loan$ListingCategory..numeric.)=="4"] <- "Personal Loan"
+levels(loan$ListingCategory..numeric.)[
+  levels(loan$ListingCategory..numeric.)=="5"] <- "Student Use"
+levels(loan$ListingCategory..numeric.)[
+  levels(loan$ListingCategory..numeric.)=="8"] <- "Baby & Adoption"
+levels(loan$ListingCategory..numeric.)[
+  levels(loan$ListingCategory..numeric.)=="9"] <- "Boat"
+
+#plot
+ggplot(aes(x=ListingCategory..numeric., y=BorrowerRate), 
+       data = subset(loan, !is.na(ListingCategory..numeric.))) + 
+  geom_boxplot(alpha = 1/50, color = 'springgreen') + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  stat_summary(fun.y = mean, geom = "point", shape = 4, color = 'red') +
+  ggtitle('Loan Categories vs Borrower Rates') +
+  xlab("Loan Category") + ylab("Borrower Rates") 
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Auto and Other have higher rates than the others. Boat and Debt Consolidation have the lowest.
+<br>
+<br>
+<h4>**2.12 Homeowner vs Borrower Rates**</h4>
+<br>
+```{r, echo=FALSE}
+#change names
+loan$IsBorrowerHomeowner[loan$IsBorrowerHomeowner == FALSE] <- "No"
+loan$IsBorrowerHomeowner[loan$IsBorrowerHomeowner == TRUE] <- "Yes"
+
+#order factors
+loan <- within(loan, IsBorrowerHomeowner <- factor
+               (IsBorrowerHomeowner, 
+                levels=names(sort(table(IsBorrowerHomeowner), 
+                                  decreasing=TRUE))))
+
+#plot
+ggplot(aes(x=IsBorrowerHomeowner, y=BorrowerRate), data = loan) + 
+  geom_boxplot(width = 0.5, alpha = 1/50, color = 'springgreen') +
+  ggtitle('Homeowner vs Borrower Rate') +
+  stat_summary(fun.y = mean, geom = "point", shape = 4, color = 'red') +
+  xlab('Homeowner') + ylab('Borrower Rate')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Homeowner have lower rates than non-homeowner.
+<br>
+<br>
+<h4>**2.13 Top Occupations vs Borrower Rates**</h4>
+<br>
+```{r, echo=FALSE}
+#Top 10
+loan$Occupation[loan$Occupation == "Other"] <- NA
+loan$Occupation[loan$Occupation == ""] <- NA
+loan$Occupation <- factor(loan$Occupation)
+loan <- within(loan, Occupation <- factor(Occupation, 
+                                          exclude = NA,
+                                          levels=names(
+                                            sort(table(Occupation)[1:10], 
+                                                 decreasing=TRUE))))
+#plot
+ggplot(aes(x=Occupation, y=BorrowerRate), 
+       data = subset(loan, !is.na(Occupation))) + 
+  geom_boxplot(width = 0.5, alpha = 1/50, 
+               color = 'springgreen') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  stat_summary(fun.y = mean, geom = "point", 
+               shape = 4, color = 'red') +
+  ggtitle('Top Occupations vs BorrowerRate') +
+  xlab('Top 10 Occupations') + ylab('BorrowerRate')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Administrative Assistans and Bus Drivers have the highest interest rates while Attorneys and Architects have the lowest.
+<br>
+<br>
+<h4>**2.14 Year vs Borrower Rates**</h4>
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=Year, y=BorrowerRate), data = loan) + 
+  geom_boxplot(width = 0.5, alpha = 1/50, color = 'springgreen') +
+  ggtitle('Year vs BorrowerRate') +
+  stat_summary(fun.y = mean, geom = "point", 
+               shape = 4, color = 'red') +
+  xlab('Year') + ylab('BorrowerRate')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+The interest rates are below 20% from 2005 to 2009, above 20% from 2010 to 2012 and again below 20% in 2013 and in 2014.
+<br>
+<br>
+<h4>**3. Additional bivariate Plots**</h4>
+<br>
+<h4>**3.1 Investors vs Monthly Loan Payment**</h4>
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=Investors, y=MonthlyLoanPayment), data = loan) + 
+  geom_point(alpha=1/10, color = 'seagreen1') +
+  ggtitle('Investors vs Monthly Loan Payment') +
+  xlab('Investors') + ylab('Monthly Loan Payment')
+
+with(loan, cor.test(Investors, MonthlyLoanPayment), method='pearson')
+
+
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+The most loans have Monthly Loan Payments between 0 and 1000 USD and between 0 and 300 Investors.
+The red dots show the means of each Investors-Monthly Loan Payment-Pair.
+According to the Pearson Correlation, there is a weak positive relation between the pairs.
+<br>
+<br>
+<h4>**3.2 Investors vs Average Credit Score**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=Investors, y=AverageCreditScore), data = loan) + 
+  geom_jitter(alpha = 1/10, color='red4') +
+  scale_y_continuous(lim = c(quantile(
+                             loan$AverageCreditScore, 0.01, na.rm=TRUE),  
+                             quantile(
+                               loan$AverageCreditScore, 0.99, na.rm=TRUE)),
+                     breaks = seq(500, 850, 50)) +
+  ggtitle('Investors vs Average Credit Score') +
+  xlab('Investors') + ylab('Average Credit Score')
+
+with(loan, cor.test(Investors, AverageCreditScore), 
+     method='pearson')
+
+```
+<br>
+<br>
+Most loans have Average Credit Scores between 600 to 800 points and between 0 and 500 investors.
+There is a weak positive correlation between Investors and Average Credit Scores.
+<br>
+<h4>**3.3 Monthly Loan Payment vs Average Credit Score**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=AverageCreditScore, y=MonthlyLoanPayment), 
+       data = loan) + 
+  geom_jitter(color='sienna1', alpha=1/3) +
+  scale_y_continuous(lim = c(quantile(
+                              loan$AverageCreditScore, 
+                              0.01, na.rm=TRUE),  
+                             quantile(
+                               loan$AverageCreditScore, 
+                               0.99, na.rm=TRUE)),
+                     breaks = seq(500, 850, 50)) +
+  scale_x_continuous(lim = c(500,850),
+                     breaks = seq(500, 850, 50)) +
+  ggtitle('Monthly Loan Payment vs Average Credit Score') +
+  stat_summary(fun.y = mean, geom = "point", 
+               shape = 4, color = 'red') +
+  xlab('Monthly Loan Payment') + ylab('Average Credit Score')
+
+with(loan, cor.test(MonthlyLoanPayment, 
+                    AverageCreditScore), method='pearson')
+
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+The Monthly Loan Payments between 600 and 800 have scores between 600 to 800.
+<br>
+<h4>**3.4 Term vs Investors**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=Term, y=Investors), data = loan) + 
+  geom_boxplot(width = 0.5, color = 'springgreen') +
+  ggtitle('Term vs Investors') +
+  stat_summary(fun.y = mean, geom = "point", 
+               shape = 4, color = 'red') +
+  scale_y_continuous(lim = c(0, 500)) +
+  xlab('Term') + ylab('Investors')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Loans with a term of 12 and 36 months have more investors than 60 month loans.
+<br>
+<br>
+<h4>**3.5 Loan Categories vs Investors**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=ListingCategory..numeric., y=Investors), 
+       data = subset(loan, !is.na(ListingCategory..numeric.))) + 
+  geom_boxplot(width = 0.5, color = 'springgreen') +
+  ggtitle('Loan Categories vs Investors') +
+  stat_summary(fun.y = mean, geom = "point", 
+               shape = 4, color = 'red') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_y_continuous(lim = c(0, 500)) +
+  xlab('Loan Categories') + ylab('Investors')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Business and Personal Loans have the most investors while Boat, Baby & Adoption and Other have the fewest.
+<br>
+<h4>**3.6 Year vs Monthly Loan Payment**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=Year, y=MonthlyLoanPayment), data = loan) + 
+  geom_boxplot(width = 0.5, color = 'springgreen') +
+  ggtitle('Year vs Monthly Loan Payment') +
+  stat_summary(fun.y = mean, geom = "point", 
+               shape = 4, color = 'red') +
+  scale_y_continuous(lim = c(0, 500)) +
+  xlab('Year') + ylab('Monthly Loan Payment')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Monthly Loan Payments have been risen over the years except a fall around 2009.
+<br>
+<h4>**3.7 Top Occupations vs Monthly Loan Payment**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=Occupation, y=MonthlyLoanPayment), 
+       data = subset(loan, !is.na(Occupation))) +
+  geom_boxplot(width = 0.5, color = 'springgreen') +
+  ggtitle('Top Occupations vs Monthly Loan Payment') +
+  stat_summary(fun.y = mean, geom = "point", 
+               shape = 4, color = 'red') +
+  scale_y_continuous(lim = c(0, 500)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab('Top Occupations') + ylab('Monthly Loan Payment')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Attorneys have the highest monthly loan payments while Bus Drivers and Administrative Assistants have the lowest.
+<br>
+<h4>**3.8 Employment Status vs Monthly Loan Payment**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=EmploymentStatus, y=MonthlyLoanPayment), data = loan) + 
+  geom_boxplot(width = 0.5, color = 'springgreen') +
+  ggtitle('Year vs Monthly Loan Payment') +
+  stat_summary(fun.y = mean, geom = "point", 
+               shape = 4, color = 'red') +
+  scale_y_continuous(lim = c(0, 500)) +
+  xlab('EmploymentStatus') + ylab('Monthly Loan Payment')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Employed and Self Employed People have higher monthly loan payments than retired, part-time or not employed People.
+<br>
+<h4>**3.9 Homeowner vs Average Credit Score**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=IsBorrowerHomeowner, y=AverageCreditScore), 
+       data = loan) + 
+  geom_boxplot(width = 0.5, color = 'springgreen') +
+  ggtitle('Homeowner vs Average Credit Score') +
+  stat_summary(fun.y = mean, geom = "point", 
+               shape = 4, color = 'red') +
+  scale_y_continuous(lim = c(500, 900)) +
+  xlab('Homeowner') + ylab('Average Credit Score')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Homeowners have higher Average Credit Scores than non-homeowner.
+<br>
+<h4>**3.10 Loan Status vs Average Credit Score**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=LoanStatus, y=AverageCreditScore), 
+       data = loan) + 
+  geom_boxplot(width = 0.5, color = 'springgreen') +
+  ggtitle('Loan Status vs Average Credit Score') +
+  stat_summary(fun.y = mean, geom = "point", 
+               shape = 4, color = 'red') +
+  scale_y_continuous(lim = c(500, 900)) +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   hjust = 1)) +
+  xlab('Loan Status') + ylab('Average Credit Score')
+```
+<br>
+*Note: The red dot shows the mean of the plotted feature(s)*
+<br>
+Current, Completed and Final Payment in Progress Loans have higher Scores than Cancelled or Defaulted Loans.
+<br>
+<h3>Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?</h3>
+The two main features are Loan Original Amount and Borrower Rate.
+First, Loan Original Amount: <br>
+The Features Investors (1.2), Average Credit Score (1.4) and Term (1.9) have a positive influence on the Loan Original Amount. Higher Amounts need higher Investors, Average Credit Scores or Terms. <br>
+When you look at the feature Homeowner (1.13), you can see that people with homes have higher amounts than people without homes. This makes sense because they have more securities. <br>
+The feature Occupation (1.14) is also interesting. High educated Occupations like Attorneys and Chemists get higher loans than Bus Drivers or Administative Assistants. <br>
+Finally, the feature Year (1.15): Over time, the people get higher loans. The Prosper Platform seems to get more trustworthy in the last 10 years except 2009. <br>
+<br>
+Second, Borrower Rate: <br> 
+Most features have no direct effect on the Borrower Rate because they stay between 5% and 35% like Stated Monthly Income (2.4) or Term (2.8). But other features have visible effects. <br>
+First, Average Credit Score (2.3). The higher the score the lower the interest rate. <br>
+Secondly, Homeowner (2.12) have lower rates than non-homeowner. <br>
+Thirdly, Occupation: Attorneys have lower rates than Bus Drivers (see above Loan Original Amount). <br>
+Finally, Year (2.14): Over time, the rates have been decreased, except the fall in 2008/2009, probably because of the financial crisis. <br>
+<br>
+<h3>Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?</h3>
+Monthly Loan Payment vs Year (3.6) is interesting. It's like Borrower Rate vs Year and Loan Original Amount vs Year (see above). Over time, people are paying more for their loans taken over the Prosper platform. Perhaps, they use this platform now more than other institutions like banks. <br>
+Occupation vs Monthly Loan Payment (3.7): You can see that the Occupation has an effect to the Monthly Loan Payment. Attorneys and Architectscan pay higher loans than the others. <br>
+Homeowners vs Average Credit Score (3.8): Homeowner get higher scores than non-homeowner. This makes sense because to get a credit for a house you need automatically high scores in the beginning.<br>
+<h3>What was the strongest relationship you found?</h3> <br>
+The strongest relationships were between Borrower Rate, APR and Lender Yield in the beginning with correlations of almost 1. Next, the correlation between Monthly Loan Payment and Loan Original Amount of 93%.
+<br>
+<br>
+<br>
+<center><h2>3 Multivariate Analysis</h2></center>
+<br>
+<h4>**1. Loan Original Amount by Monthly Loan Payment and Term**</h4>
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=MonthlyLoanPayment, y=LoanOriginalAmount), data = loan) + 
+  geom_point(aes(color=Term)) + 
+  ggtitle('Loan Original Amount by Monthly Loan Payment and Term') +
+  xlab('Monthly Loan Payment') + ylab('Loan Original Amount')  
+
+```
+<br>
+This plot shows Loan Original Amount vs Monthly Loan Payment by Term. You can see three different lines with the three different terms. Becauses of the almost perfect correlation between Loan Original Amount and Monthly Loan Payment.
+<br>
+Correlations:
+<br>Loan Original Amount by Monthly Loan Payment<br>
+Term: 12 Months
+<br>
+```{r, echo=FALSE}
+Term12 <- subset(loan, Term == 12)
+
+with(Term12, cor.test(LoanOriginalAmount, MonthlyLoanPayment), 
+     method='pearson')
+```
+<br>
+Term: 36 Months
+<br>
+```{r, echo=FALSE}
+Term36 <- subset(loan, Term == 36)
+
+with(Term36, cor.test(LoanOriginalAmount, MonthlyLoanPayment), 
+     method='pearson')
+```
+<br>
+Term: 60 Months
+<br>
+```{r, echo=FALSE}
+Term60 <- subset(loan, Term == 60)
+
+with(Term60, cor.test(LoanOriginalAmount, MonthlyLoanPayment), 
+     method='pearson')
+```
+<br>
+All three correlations are beyond 90%, and Term 36 has the highest positive correlation between Monthly Loan Payment and Loan Original Amount.
+<br>
+<br>
+<h4>**2. Loan Original Amount by Borrower Rate and Homeowners**</h4>
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=BorrowerRate, y=LoanOriginalAmount), data = loan) + 
+  geom_point(aes(color=IsBorrowerHomeowner), alpha = 1/5) + 
+  ggtitle('Loan Original Amount by Borrower Rate and Homeowner') +
+  scale_color_discrete(name="Homeowner") +
+  xlab('Borrower Rate') + ylab('Loan Original Amount')  
+```
+<br>
+Homeowner (red, top left) seem to have higher loans with lower rates than non-homeowner (green, bottom right). One explanation can be the securities the home offers.
+<br>
+Correlation between Loan Original Amount and Borrower Rate:
+<br>
+Homeowner: yes:
+<br>
+```{r, echo=FALSE}
+homeowneryes <- subset(loan, IsBorrowerHomeowner == "True")
+
+with(homeowneryes, cor.test(LoanOriginalAmount, BorrowerRate), 
+     method='pearson')
+```
+<br>
+<br>
+Homeowner: no:
+<br>
+```{r, echo=FALSE}
+homeownerno <- subset(loan, IsBorrowerHomeowner == "False")
+
+with(homeownerno, cor.test(LoanOriginalAmount, BorrowerRate), 
+     method='pearson')
+```
+<br>
+The correlations of -32% vs -29% seem equally. There is no big difference in the correlation between Loan Original Amount vs BorrowerRate if the Borrower has a home or not.
+<br>
+<h4>**3. Borrower Rate by Investors and Homeowners**</h4>
+<br>
+```{r, echo=FALSE}
+ggplot(aes(x=Investors, y=BorrowerRate), data = loan) + 
+  geom_point(aes(color=IsBorrowerHomeowner), alpha = 1/5) +
+  scale_color_discrete(name="Homeowner") +
+  ggtitle('Borrower Rate by Investors and Homeowners') +
+  xlab('Investors') + ylab('Borrower Rate')  
+```
+<br>
+Non homeowner (left, darkgreen) have fewer investors while homeowner (bottom right, red) have more investors and mostly rates below 20%.
+<br>
+<br>
+<br>
+Correlation between Borrower Rate and Investors:
+<br>
+Homeowner: yes
+<br>
+```{r, echo=FALSE}
+homeowneryes <- subset(loan, IsBorrowerHomeowner == "True")
+
+with(homeowneryes, cor.test(BorrowerRate, Investors), 
+     method='pearson')
+```
+<br>
+<br>
+Homeowner: no
+<br>
+```{r, echo=FALSE}
+homeownerno <- subset(loan, IsBorrowerHomeowner == "False")
+
+with(homeownerno, cor.test(BorrowerRate, Investors), 
+     method='pearson')
+```
+<br>
+<br>
+There is no big difference in the correlations between Loan Original Amount and Investors when you compare Borrowers with or without own homes.
+<br>
+<h4>**4. Loan Original Amount by Stated Monthly Income and Year**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+Year20062009 <- subset(
+  loan, Year == 2006 | Year == 2007 | Year == 2008 | Year == 2009)
+
+
+Year20102014 <- subset(
+  loan, Year == 2010 | Year == 2011 | Year == 2012 | Year == 2013 | 
+    Year == 2014)
+
+p1.1 <- ggplot(aes(x=StatedMonthlyIncome, y=LoanOriginalAmount), 
+             data = Year20062009) + 
+  geom_jitter(color='blue', alpha = 1/100) +
+  scale_x_continuous(lim = c(0,10000)) +
+  scale_y_continuous() +
+  ggtitle('Year 2006 - 2009') +
+  xlab('Stated Monthly Income') + ylab('Loan Original Amount') 
+
+p2.1 <- ggplot(aes(x=StatedMonthlyIncome, y=LoanOriginalAmount), data = 
+               Year20102014) + 
+  geom_jitter(color='green', alpha =1/100) +
+  scale_x_continuous(lim = c(0,10000)) +
+  scale_y_continuous() +
+  ggtitle('Year 2010 - 2014') +
+  xlab('Stated Monthly Income') + ylab('Loan Original Amount') 
+
+grid.arrange(p1.1,p2.1, ncol=1, main = 'Loan Original Amount by Stated Monthly 
+             Income and Year')
+
+```
+<br>
+<br>
+*Note: The Year 2005 is missing because they are only 22 obversations in the dataset*
+<br>
+In the later years, the Borrower seem to have higher Stated Monthly Incomes (right) while the Loan Original Amount seems similar.
+<br>
+<br>
+<br>
+Correlation between Loan Original Amount and Stated Monthly Income:
+<br>
+Years 2006 to 2009:
+<br>
+```{r, echo=FALSE}
+Year20062009 <- subset(
+  loan, Year == 2006 | Year == 2007 | Year == 2008 | Year == 2009)
+
+with(Year20062009, cor.test(LoanOriginalAmount, StatedMonthlyIncome), 
+     method='pearson')
+```
+<br>
+<br>
+Years 2010 to 2014:
+<br>
+```{r, echo=FALSE}
+Year20102014 <- subset(
+  loan, Year == 2010 | Year == 2011 | Year == 2012 | Year == 2013 | 
+    Year == 2014)
+
+with(Year20102014, cor.test(LoanOriginalAmount, StatedMonthlyIncome), 
+     method='pearson')
+```
+<br>
+There is a little difference between both correlations. The correlation of the years 2006 to 2009 is a little bit higher (25%) than the one of the years 2010 to 2014 (18%).
+<br>
+<h4>**5. Loan Original Amount by Average Credit Score and Employment Status**</h4>
+<br>
+The Employment Statuses are gathered in full-time employments and no full-time employments for more clearness.
+<br>
+```{r, echo=FALSE, warning=FALSE}
+Employment1 <- subset(
+  loan, EmploymentStatus == "Employed" | 
+    EmploymentStatus == "Full-time" |
+    EmploymentStatus == "Self-employed")
+
+Employment2 <- subset(
+  loan, EmploymentStatus == 'Not available' |
+    EmploymentStatus == 'Other' |
+    EmploymentStatus == 'Part-time' |
+    EmploymentStatus == 'Not employed' |
+    EmploymentStatus == 'Retired')
+
+p1.2 <- ggplot(aes(x=AverageCreditScore, y=LoanOriginalAmount), 
+             data = Employment1) + 
+  geom_jitter(color='red', alpha = 1/10) +
+  scale_x_continuous(lim=c(500,900)) +
+  scale_y_continuous() +
+  ggtitle('Full-time Jobs') +
+  xlab('Average Credit Score') + ylab('Loan Original Amount') 
+
+p2.2 <- ggplot(aes(x=AverageCreditScore, y=LoanOriginalAmount), 
+             data = Employment2) + 
+  geom_jitter(color='green', alpha = 1/10) +
+  scale_x_continuous(lim=c(500,900)) +
+  scale_y_continuous() +
+  ggtitle('No Full-time Jobs') +
+  xlab('Average Credit Score') + ylab('Loan Original Amount') 
+
+grid.arrange(p1.2,p2.2, ncol=1, main = 'Loan Original Amount by Average Credit
+             Score and Employment Status')
+```
+<br>
+Full time employed people have much higher scores and loans than non full time employed people.
+<br>
+<br>
+<br>
+Correlation between Loan Original Amount and Average Credit Score:
+The Employment Statuses are gathered in full-time employments and no full-time employments for more clearness.
+<br>
+Full-time Employments (Employed, Full-time, Self-employed) 
+<br>
+```{r, echo=FALSE}
+Employment1 <- subset(
+  loan, EmploymentStatus == "Employed" | 
+    EmploymentStatus == "Full-time" |
+    EmploymentStatus == "Self-employed")
+
+with(Employment1, cor.test(LoanOriginalAmount, AverageCreditScore), 
+     method='pearson')
+```
+<br>
+<br>
+No full-time Employments (Not available, Other, Part-time, Not employed, Retired)
+<br>
+```{r, echo=FALSE}
+Employment2 <- subset(
+  loan, EmploymentStatus == 'Not available' |
+    EmploymentStatus == 'Other' |
+    EmploymentStatus == 'Part-time' |
+    EmploymentStatus == 'Not employed' |
+    EmploymentStatus == 'Retired')
+
+with(Employment2, cor.test(LoanOriginalAmount, AverageCreditScore), 
+     method='pearson')
+```
+<br>
+Both correlations have values around 30%.
+<br>
+<h4>**6. Loan Original Amount by Debt Coverage Ratio and Homeowners**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=DebtCoverageRatio2, y=LoanOriginalAmount), 
+       data = loan) + 
+  geom_point(aes(color=IsBorrowerHomeowner), alpha=1/5) +
+  scale_x_continuous(lim = c(0,100)) +
+  scale_color_discrete(name="Homeowner") +
+  ggtitle('Loan Original Amount by Debt Coverage Ratio and Homeowners') +
+  xlab('Debt Coverage Ratio') + ylab('Loan Original Amount')  
+```
+<br>
+You can see a difference between Homeowner and Non-homeowners when you want to compare Loan Original Amount vs Debt Coverage Ratio. The Homeowners (red) get higher loans than Non-Homeowners (green) when you compare similar Debt Coverage Ratios.
+<br>
+Correlation:
+<br>
+Homeowner: yes
+<br>
+```{r, echo=FALSE}
+DebtCoverageRatioNAandHomeowneryes <- subset(
+  loan, DebtCoverageRatio2 != Inf & DebtCoverageRatio2 != 'NA' &
+    IsBorrowerHomeowner == "True")
+
+with(DebtCoverageRatioNAandHomeowneryes, cor.test(LoanOriginalAmount, 
+                    DebtCoverageRatio2), 
+     method='pearson')
+
+```
+<br>
+<br>
+Homeowner: no
+<br>
+```{r, echo=FALSE}
+DebtCoverageRatioNAandHomeownerno <- subset(
+  loan, DebtCoverageRatio2 != Inf & DebtCoverageRatio2 != 'NA' &
+    IsBorrowerHomeowner == "False")
+
+with(DebtCoverageRatioNAandHomeownerno, cor.test(
+  LoanOriginalAmount, DebtCoverageRatio2), method='pearson')
+```
+<br>
+<br>
+There is no big difference in the correlations between Loan Original Amount and Debt Coverage Ratio when you compare Borrowers with or without own homes.
+<br>
+<br>
+<h4>**7. Loan Original Amount by Loan Per Investor and Year**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+Year20062009 <- subset(
+  loan, Year == 2006 | Year == 2007 | Year == 2008 | Year == 2009)
+
+
+Year20102014 <- subset(
+  loan, Year == 2010 | Year == 2011 | Year == 2012 | Year == 2013 | 
+    Year == 2014)
+
+p1.3 <- ggplot(aes(x=LoanPerInvestor, y=LoanOriginalAmount), 
+             data = Year20062009) + 
+  geom_jitter(color='blue', alpha = 1/30) +
+  scale_x_continuous(lim = c(0,100), breaks = seq(0,100,10)) +
+  scale_y_continuous(lim = c(0,30000)) +
+  ggtitle('Year 2006 - 2009') +
+  xlab('LoanPerInvestor') + ylab('Loan Original Amount') 
+
+p2.3 <- ggplot(aes(x=LoanPerInvestor, y=LoanOriginalAmount), data = 
+               Year20102014) + 
+  geom_jitter(color='green', alpha =1/30) +
+  scale_x_continuous(lim = c(0,100), breaks = seq(0,100,10)) +
+  scale_y_continuous(lim = c(0,30000)) +
+  ggtitle('Year 2010 - 2014') +
+  xlab('LoanPerInvestor') + ylab('Loan Original Amount') 
+
+grid.arrange(p1.3,p2.3, ncol=1, main = 'Loan Original Amount by Loan Per 
+             Investor and Year')
+```
+<br>
+<br>
+*Note: The Year 2005 is missing because they are only 22 obversations in the dataset*
+<br>
+The Loans Per Investor have moved over the time from an intervall of 20 to 60 USD to an intervall of 50 to 100 USD (from left to right in the plots). The Amount seems to be constant. 
+<br>
+<br>
+Correlation between Loan Original Amount and Loan Per Investor:
+<br>
+Years 2006 to 2009:
+<br>
+```{r, echo=FALSE}
+Year20062009 <- subset(
+  loan, Year == 2006 | Year == 2007 | Year == 2008 | Year == 2009)
+
+with(Year20062009, cor.test(LoanOriginalAmount, LoanPerInvestor), 
+     method='pearson')
+```
+<br>
+<br>
+Years 2010 to 2014:
+<br>
+```{r, echo=FALSE}
+Year20102014 <- subset(
+  loan, Year == 2010 | Year == 2011 | Year == 2012 | Year == 2013 | 
+    Year == 2014)
+
+with(Year20102014, cor.test(LoanOriginalAmount, LoanPerInvestor), 
+     method='pearson')
+```
+<br>
+There is a huge difference between both correlations. While the earlier one from 2006 to 2009 has only 5% the later one from 2010 to 2014 has a strong value of 55%.
+<br>
+<br>
+<h4>**8. Borrower Rate by Loan Per Investor and  Year**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+Year20062009 <- subset(
+  loan, Year == 2006 | Year == 2007 | Year == 2008 | Year == 2009)
+
+
+Year20102014 <- subset(
+  loan, Year == 2010 | Year == 2011 | Year == 2012 | Year == 2013 | 
+    Year == 2014)
+
+p1.4 <- ggplot(aes(x=LoanPerInvestor, y=BorrowerRate), 
+             data = Year20062009) + 
+  geom_jitter(color='blue', alpha = 1/30) +
+  scale_x_continuous(lim = c(0,250), breaks = seq(0,250,50)) +
+  scale_y_continuous() +
+  ggtitle('Year 2006 - 2009') +
+  xlab('Loan Per Investor') + ylab('Borrower Rate') 
+
+p2.4 <- ggplot(aes(x=LoanPerInvestor, y=BorrowerRate), data = 
+               Year20102014) + 
+  geom_jitter(color='green', alpha =1/30) +
+  scale_x_continuous(lim = c(0,250), breaks = seq(0,250,50)) +
+  scale_y_continuous() +
+  ggtitle('Year 2010 - 2014') +
+  xlab('Loan Per Investor') + ylab('Borrower Rate') 
+
+grid.arrange(p1.4,p2.4, ncol=1, main = 'Borrower Rate by Loan Per 
+             Investor and Year')
+```
+<br>
+<br>
+*Note: The Year 2005 is missing because they are only 22 obversations in the dataset*
+<br>
+The Borrower Rate seem to stay constant between 5% and 35% while the Loan Per Investor have risen in the later years.
+<br>
+<br>
+Correlation between Borrower Rate and Loan Per Investor:
+<br>
+Years 2006 to 2009:
+<br>
+```{r, echo=FALSE}
+Year20062009 <- subset(
+  loan, Year == 2006 | Year == 2007 | Year == 2008 | Year == 2009)
+
+with(Year20062009, cor.test(BorrowerRate, LoanPerInvestor), 
+     method='pearson')
+```
+<br>
+<br>
+Years 2010 to 2014:
+<br>
+```{r, echo=FALSE}
+Year20102014 <- subset(
+  loan, Year == 2010 | Year == 2011 | Year == 2012 | Year == 2013 | 
+    Year == 2014)
+
+with(Year20102014, cor.test(BorrowerRate, LoanPerInvestor), 
+     method='pearson')
+```
+<br>
+There is a huge difference between both correlations. While the earlier one from 2006 to 2009 has a value of almost 0% the later one has a value of -26% which is a weak negative correlation.
+<br>
+<h4>**9. Loan Original Amount by Debt To Income Ratio and Top Occupations**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=DebtToIncomeRatio, y=LoanOriginalAmount), 
+       data = subset(loan, !is.na(Occupation))) +
+  geom_point(alpha=0.1) +
+  scale_x_continuous(lim = c(0,2)) +
+  facet_wrap(~ Occupation) +
+  ggtitle(
+    'Loan Original Amount by Debt To Income Ratio and Top Occupations') +
+  xlab('Debt To Income Ratio') + ylab('Loan Original Amount')  
+```
+<br>
+Most people with the top Occupations have Debt to Income Ratio between 0 and 0.5 except Administrative Assistants and Bus Drivers. These people have also lower Loan Amounts than the others.
+<br>
+<br>
+Correlation between Loan Original Amount and Debt To Income Ratio:
+I divided the 10 Occupations into high and low Income Jobs.
+<br>
+<br>
+High Income Jobs (Analyst, Accountant/CPA, Attorney)
+<br>
+```{r, echo=FALSE}
+Jobs1 <- subset(
+  loan, Occupation == "Analyst" | 
+    Occupation == "Accountant/CPA" |
+    Occupation == "Attorney")
+
+
+Jobs1Debt <- subset(Jobs1, DebtCoverageRatio2 != Inf & 
+                      DebtCoverageRatio2 != 'NA')
+
+with(Jobs1Debt, cor.test(LoanOriginalAmount, DebtToIncomeRatio), 
+     method='pearson')
+```
+<br>
+<br>
+Low Income Jobs (Administrative Assistant, Civil Service, Bus Driver, Architect, Car Dealer, Chemist, Biologist)
+<br>
+<br>
+```{r, echo=FALSE}
+Jobs2 <- subset(
+  loan, Occupation == "Administrative Assistant" | 
+    Occupation == "Civil Service" |
+    Occupation == "Bus Driver" |
+    Occupation == "Architect" |
+    Occupation == "Car Dealer" |
+    Occupation == "Chemist" |
+    Occupation == "Biologist")
+
+
+Jobs2Debt <- subset(Jobs2, DebtCoverageRatio2 != Inf & 
+                      DebtCoverageRatio2 != 'NA')
+
+with(Jobs2Debt, cor.test(LoanOriginalAmount, DebtToIncomeRatio), 
+     method='pearson')
+```
+<br>
+Both correlations are really low.
+<br>
+<br>
+<h4>**10. Borrower Rate by Stated Monthly Income and Loan Categories**</h4>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=StatedMonthlyIncome, y=BorrowerRate), data = 
+         subset(loan, !is.na(ListingCategory..numeric.))) +
+  geom_point(color='deepskyblue', alpha = 1/10) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_continuous(lim = c(0,50000)) +
+  facet_wrap(~ ListingCategory..numeric.) +
+  ggtitle('Borrower Rate by Stated Monthly Income and Loan Categories') +
+  xlab('Stated Monthly Income') + ylab('Borrower Rate')  
+```
+<br>
+The Borrower Rate doesn't seem to an visible effect on the different loan categories because all have loans between 5% and 35%. But you can see that people who use their loans for Debt Consolidation, Business and Home Improvements have the highest monthly Incomes.
+<br>
+<br>
+Correlation between Borrower Rate and Stated Monthly Income:
+I divided the 10 Loan Categories into two 5-Categories correlations.
+<br>
+First 5 Loan Categories (Debt Consolidation, NA, Other, Home Improvement, Business)
+<br>
+```{r, echo=FALSE}
+Loan1 <- subset(
+  loan, ListingCategory..numeric. == "Debt Consolidation" | 
+    ListingCategory..numeric. == "Not available" |
+    ListingCategory..numeric. == "Other" |
+    ListingCategory..numeric. == "Home Improvement" |
+    ListingCategory..numeric. == "Business")
+
+with(Loan1, cor.test(BorrowerRate, StatedMonthlyIncome), 
+     method='pearson')
+```
+<br>
+<br>
+Last 5 Loan Categories (Auto, Personal Loan, Student Use, Baby & Adoption, Boat)
+<br>
+```{r, echo=FALSE}
+Loan2 <- subset(
+  loan, ListingCategory..numeric. == "Auto" | 
+    ListingCategory..numeric. == "Personal Loan" |
+    ListingCategory..numeric. == "Student Use" |
+    ListingCategory..numeric. == "Baby & Adoption" |
+    ListingCategory..numeric. == "Boat")
+
+with(Loan2, cor.test(BorrowerRate, StatedMonthlyIncome), 
+     method='pearson')
+```
+<br>
+The both correlations have only litte differences.
+<br>
+<br>
+<h3>Talk about some of the relationships you observed in this part of the investigation. Were there features that strengthened each other in terms of looking at your feature(s) of interest?</h3>
+First focus on feature Homeowner as color variable: <br>
+Plot 2 shows that Homeowner have better conditions than non homeowner because of higher amounts and lower interest rates. <br>
+Plot 3 shows that loans of Homeowners have more investors than loans without homes. <br>
+Plot 6 shows that Homeowners have higher Debt Coverage Ratios and higher loans than non homeowners <br>
+Secondly, the feature Year is interesting: <br>
+Plot 8 shows that Loan Per Investor has been increased although the Borrower Rates seemed to be constant. <br>
+<br>
+<br>
+<h3>Were there any interesting or surprising interactions between features?</h3>
+Plot 10 is interesting. All of the 10 Occupations have similar Debt To Income Ratios, mostly between 0% and 50%. I expected that people with higher incomes have lower Debt To Income Ratios but all people seem to have similar ratios of debt/income. 
+<br>
+<br>
+<br>
+<br>
+<br>
+<center><h2>4 Final Plots and Summary</h2></center>
+<br>
+<h4>**1. Loan Original Amount by Debt Coverage Ratio and Year**</h4>
+<br>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+p1.5 <- ggplot(aes(x=DebtCoverageRatio2, y=LoanOriginalAmount), data = 
+               Year20062009) + 
+  geom_jitter(color = 'blue', alpha = 1/100) +
+  scale_x_continuous(lim = c(10,50)) +
+  scale_y_continuous(lim = c(0, 30000)) +
+  ggtitle('Year 2006 - 2009') +
+  xlab('Debt to Coverage Ratio') + ylab('Loan Original Amount') 
+
+p2.5 <- ggplot(aes(x=DebtCoverageRatio2, y=LoanOriginalAmount), data = 
+               Year20102014) + 
+  geom_jitter(color = 'green', alpha =1/100) +
+  scale_x_continuous(lim = c(10,50)) +
+  scale_y_continuous(lim = c(0, 30000)) +
+  ggtitle('Year 2010 - 2014') +
+  xlab('Debt to Coverage Ratio') + ylab('Loan Original Amount') 
+
+grid.arrange(p1.5,p2.5, ncol=1, main = 'Loan Original Amount by Debt Coverage 
+             Ratio and Year')
+```
+<br>
+<br>
+*Note: The Year 2005 is missing because they are only 22 obversations in the dataset*
+<br>
+You can see that the Debt Coverage Ratio changed over time. In the early years 2005-2009 (bottom left) the amounts are middle and the coverage Ratio is low. There is also high Debt Coverage Ratios and low amounts (bottom right). In the later years 2010-2014 there are much more loans with higher amounts  and lower Debt to Coverage Ratios top left). You can see more people are trusting the Prosper Platform with higher amounts and they are more trustworthy because of the higher ratios.
+<br>
+<br>
+Correlation between Loan Original Amount and Debt to Coverage Ratio:
+<br>
+Years 2006 to 2009:
+<br>
+```{r, echo=FALSE}
+Year20062009 <- subset(
+  loan, Year == 2006 | Year == 2007 | Year == 2008 | Year == 2009)
+
+Year20062009Debt <- subset(
+  Year20062009, DebtCoverageRatio2 != Inf & DebtCoverageRatio2 != 'NA')
+
+with(Year20062009Debt, cor.test(LoanOriginalAmount, DebtCoverageRatio2), 
+     method='pearson')
+```
+<br>
+<br>
+Years 2010 to 2014:
+<br>
+```{r, echo=FALSE}
+Year20102014 <- subset(
+  loan, Year == 2010 | Year == 2011 | Year == 2012 | Year == 2013 | 
+    Year == 2014)
+
+Year20102014Debt <- subset(
+  Year20102014, DebtCoverageRatio2 != Inf & DebtCoverageRatio2 != 'NA')
+
+with(Year20102014Debt, cor.test(LoanOriginalAmount, DebtCoverageRatio2), 
+     method='pearson')
+```
+<br>
+There is no big difference in the correlations of the early and the later years.
+<br>
+<h4>**2. Loan Original Amount by Stated MonthlyIncome and Top Occupations**</h4>
+<br>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=StatedMonthlyIncome, y=LoanOriginalAmount), 
+       data = subset(loan, !is.na(Occupation))) +
+  geom_point() +
+  scale_x_continuous(lim = c(0,50000)) +
+  facet_wrap(~ Occupation) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  ggtitle(
+    'Loan Original Amount by Stated MonthlyIncome and Top Occupations') +
+  xlab('Stated Monthly Income') + ylab('Loan Original Amount')  
+```
+<br>
+In these plots you can see how different occupations have different loans amounts guarantueed by their incomes. There are three groups. Group 1 are top loans with top incomes like Analysts, Accountants and Attorneys. 
+Group 2 have top loans with lower incomes like Civil Service, Car Dealer and Chemists.
+Group 3 have low loans and low incomes like Administrative Assistants, Bus Drivers, Architects and Biologists.
+Group 1 is the most preferred group and that's why they get high loans. Group 2 has also a good standing because they get high loans with lower incomes. But group 3 isn't that interesting for loan givers. The result is they get lower loans than the other groups.
+<br>
+<br>
+Correlation between Loan Original Amount and Stated Monthly Income:
+I divided the 10 Occupations into high and low Income Jobs.
+<br>
+<br>
+High Income Jobs (Analyst, Accountant/CPA, Attorney)
+<br>
+```{r, echo=FALSE}
+Jobs1 <- subset(
+  loan, Occupation == "Analyst" | 
+    Occupation == "Accountant/CPA" |
+    Occupation == "Attorney")
+
+with(Jobs1, cor.test(LoanOriginalAmount, StatedMonthlyIncome), 
+     method='pearson')
+```
+<br>
+<br>
+Low Income Jobs (Administrative Assistant, Civil Service, Bus Driver, Architect, Car Dealer, Chemist, Biologist)
+<br>
+<br>
+```{r, echo=FALSE}
+Jobs2 <- subset(
+  loan, Occupation == "Administrative Assistant" | 
+    Occupation == "Civil Service" |
+    Occupation == "Bus Driver" |
+    Occupation == "Architect" |
+    Occupation == "Car Dealer" |
+    Occupation == "Chemist" |
+    Occupation == "Biologist")
+
+
+with(Jobs2, cor.test(LoanOriginalAmount, StatedMonthlyIncome), 
+     method='pearson')
+```
+<br>
+The low income jobs have a higher correlation than the high income jobs when you compare Loan Original Amount vs Stated Monthly Income.
+<br>
+<br>
+<h4>**3. Loan Original Amount by Stated Monthly Income and Loan Categories**</h4>
+<br>
+<br>
+```{r, echo=FALSE, warning=FALSE}
+ggplot(aes(x=StatedMonthlyIncome, y=LoanOriginalAmount), 
+       data = subset(loan, !is.na(ListingCategory..numeric.))) +
+  geom_point(color='deepskyblue', alpha = 1/10) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_continuous(lim = c(0,50000)) +
+  facet_wrap(~ ListingCategory..numeric.) +
+  ggtitle(
+    'Loan Original Amount by Stated Monthly Income and Loan Categories') +
+  xlab('Stated Monthly Income') + ylab('Loan Original Amount')  
+```
+<br>
+People with high incomes (right in the plots) are investing their loans mostly in Debt Consolidation, Home Improvements and Business. People with low income  s (left in the plots) are mostly investing in the above-mentioned categories and also in Student Use, Baby & Adoption, Auto and Boats.
+<br>
+Correlation between Loan Original Amount and Stated Monthly Income:
+I divided the 10 Loan Categories into two 5-Categories correlations.
+<br>
+<br>
+First 5 Loan Categories (Debt Consolidation, NA, Other, Home Improvement, Business)
+<br>
+```{r, echo=FALSE}
+Loan1 <- subset(
+  loan, ListingCategory..numeric. == "Debt Consolidation" | 
+    ListingCategory..numeric. == "Not available" |
+    ListingCategory..numeric. == "Other" |
+    ListingCategory..numeric. == "Home Improvement" |
+    ListingCategory..numeric. == "Business")
+
+with(Loan1, cor.test(LoanOriginalAmount, StatedMonthlyIncome), 
+     method='pearson')
+```
+<br>
+<br>
+Last 5 Loan Categories (Auto, Personal Loan, Student Use, Baby & Adoption, Boat)
+<br>
+```{r, echo=FALSE}
+Loan2 <- subset(
+  loan, ListingCategory..numeric. == "Auto" | 
+    ListingCategory..numeric. == "Personal Loan" |
+    ListingCategory..numeric. == "Student Use" |
+    ListingCategory..numeric. == "Baby & Adoption" |
+    ListingCategory..numeric. == "Boat")
+
+with(Loan2, cor.test(LoanOriginalAmount, StatedMonthlyIncome), 
+     method='pearson')
+```
+<br>
+The second correlation is higher than the first one.
+<br>
+<center><h2>5 Reflection</h2></center>
+<br>
+The most difficult part in this analysis was to choose the right variables. I reduced the dataset to 15 variables and created 3 new ones. I focused my analysis to the price of the loan (Borrower Rate) and the amount of the loan (Loan Original Amount). It's interesting that only few features have an influence to the interest rate while the amount is much more influenced by features like Occupation, existing Homes or the Score of the Borrower. 
+<br> Next step for me would be an analysis of all occupations. I focused now only the Occupations with the 10 highest counts. But there are 68 different Occupations.
+<br> Over these, the platform Prosper has evolved over time. More loans are given in 2014 than all the other years and the interest rates has been decreasing, too. There must be more and more trust in the platform by its users.
+<br>Therefore, the usage of the loans is interesting. Most loans were used for Debt Consolidation and Business.
+<br>I am also a little bit surprised about the long terms (at least 12 month in this dataset) and the high rates (median 18.4%). If you have an average loan of 1000 USD, 36 months and 18.4%, you have to pay at the end 1643.03 USD. I would look for cheaper alternatives or shorter terms. 
+<br>
+<br>
+<center><h2>References</h2></center>
+<br>
+Dataset: <a href='https://s3.amazonaws.com/udacity-hosted-downloads/ud651/prosperLoanData.csv'>https://s3.amazonaws.com/udacity-hosted-downloads/ud651/prosperLoanData.csv</a><br>
+Explanation of Variables: <a href='https://docs.google.com/spreadsheets/d/1gDyi_L4UvIrLTEC6Wri5nbaMmkGmLQBk-Yx3z0XDEtI/edit#gid=0'>https://docs.google.com/spreadsheets/d/1gDyi_L4UvIrLTEC6Wri5nbaMmkGmLQBk-Yx3z0XDEtI/edit#gid=0</a><br>
+<a href='http://en.wikipedia.org/wiki/Prosper_Marketplace'>http://en.wikipedia.org/wiki/Prosper_Marketplace</a><br>
+<a href='http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf'>http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf</a><br>
+<a href='http://rmarkdown.rstudio.com/>http://rmarkdown.rstudio.com</a><br>
+<a href='https://www.youtube.com/watch?v=qz2ZV-ELVfw>https://www.youtube.com/watch?v=qz2ZV-ELVfw</a><br>
+<a href='http://www.r-bloggers.com/r-function-of-the-day-tapply/'>http://www.r-bloggers.com/r-function-of-the-day-tapply</a><br>
+<a href='http://www.dummies.com/how-to/content/how-to-interpret-a-correlation-coefficient-r.html
+'>http://www.dummies.com/how-to/content/how-to-interpret-a-correlation-coefficient-r.html
+</a><br>
+<br>
+<br>
+<h4>Thank you for your attention.</h4>
